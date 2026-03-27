@@ -1,0 +1,14 @@
+# Java
+bin/
+*.class
+
+# macOS nonsense
+.DS_Store
+__MACOSX/
+
+# VS Code settings
+.vscode/
+
+# Build folders
+out/
+build/

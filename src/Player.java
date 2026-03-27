@@ -1,0 +1,343 @@
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.util.LinkedList;
+
+public class Player extends Character {
+    KeyHandler keyH;
+    private final double MAX_SPEED = 6;
+    private final double ACCELERATION = 0.8;
+    private final double FRICTION = 0.75;
+    private double velocityX = 0;
+    private double velocityY = 0;
+    private boolean isGrounded = false;
+    private final double GRAVITY = 0.5;
+    private final double JUMP_FORCE = -12;
+    private final int MAX_SLOTS = 3;
+    private int GROUND;
+    private int selectedSlot = 0;
+    protected int damageMultiplier = 1;
+    protected int strengthTimer;
+
+    LinkedList<Inventory> inventory = new LinkedList<>();
+    Panel panel;
+
+    public Player(int size, int health, Color colour, Panel panel) {
+        super(size, health, colour);
+        keyH = new KeyHandler(panel);
+        this.panel = panel;
+
+        characterX = panel.SCREEN_WIDTH / 2 - size / 2;
+        characterY = panel.SCREEN_HEIGHT / 2 + size / 2;
+        GROUND = (int) characterY;
+
+        emptyInventory();
+    }
+
+    public void emptyInventory() {
+        inventory.clear();
+        for (int i = 0; i < MAX_SLOTS; i++) {
+            inventory.add(new Inventory(panel, size));
+        }
+    }
+
+    private Inventory findSlot(Item.Type type) {
+        for (Inventory slot : inventory) {
+            if (!slot.isEmpty() && slot.getItem().getType() == type) {
+                return slot;
+            }
+        }
+        return null;
+    }
+
+    private Inventory findEmptySlot() {
+        for (Inventory slot : inventory) {
+            if (slot.isEmpty())
+                return slot;
+        }
+        return null;
+    }
+
+    public void addItem(Item.Type type, int amount) {
+        Inventory existing = findSlot(type);
+        if (existing != null) {
+            existing.getItem().addQuantity(amount);
+            if (existing.getItem().getQuantity() <= 0) {
+                inventory.remove(existing);
+                inventory.add(new Inventory(panel, size));
+            }
+        } else if (amount > 0) {
+            Inventory empty = findEmptySlot();
+            if (empty != null) {
+                empty.setItem(new Item(type, amount));
+            }
+        }
+    }
+
+    public Item getSelectedItem() {
+        Inventory slot = inventory.get(selectedSlot);
+        return slot.isEmpty() ? null : slot.getItem();
+    }
+
+    public void setSelectedSlot(int slot) {
+        if (slot >= 0 && slot < MAX_SLOTS)
+            selectedSlot = slot;
+    }
+
+    public int getSelectedSlot() {
+        return selectedSlot;
+    }
+
+    public void breakOne(Item.Type type) {
+        Inventory slot = findSlot(type);
+        if (slot == null)
+            return;
+
+        slot.getItem().addQuantity(-1);
+        slot.getItem().resetDurability();
+
+        if (slot.getItem().getQuantity() <= 0) {
+            inventory.remove(slot);
+            inventory.add(new Inventory(panel, size));
+        }
+    }
+
+    public boolean canCraft(Item.Type result) {
+        Inventory woodSlot = findSlot(Item.Type.WOOD);
+        int woodQty = woodSlot == null ? 0 : woodSlot.getItem().getQuantity();
+        switch (result) {
+            case SWORD:
+                return woodQty >= 6;
+            case AXE:
+                return woodQty >= 4;
+            default:
+                return false;
+        }
+    }
+
+    public boolean craft(Item.Type result) {
+        if (!canCraft(result))
+            return false;
+        switch (result) {
+            case SWORD:
+                addItem(Item.Type.WOOD, -6);
+                addItem(Item.Type.SWORD, 1);
+                return true;
+            case AXE:
+                addItem(Item.Type.WOOD, -4);
+                addItem(Item.Type.AXE, 1);
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public void paint(Graphics2D g) {
+        int px = (int) characterX;
+        int py = (int) characterY;
+
+        g.setColor(colour);
+        g.fillRect(px, py, size, size);
+
+        paintHUD(g);
+        for (int i = 0; i < inventory.size(); i++) {
+            inventory.get(i).paint(g, i, i == selectedSlot);
+        }
+    }
+
+    public void paintHUD(Graphics2D g) {
+        int radius = 16;
+        int x = 10;
+        int y = 30;
+
+        int normalHearts = Math.min(maxHealth / 2, health / 2);
+        int extraHearts = Math.max(0, (health - maxHealth) / 2);
+
+        for (int i = 0; i < normalHearts; i++) {
+            g.setColor(Color.RED);
+            g.fillOval((int) (x + radius * i * 1.25), y, radius, radius);
+
+            g.setColor(Color.WHITE);
+            g.drawOval((int) (x + radius * i * 1.25), y, radius, radius);
+        }
+
+        for (int i = 0; i < extraHearts; i++) {
+            int index = normalHearts + i;
+
+            g.setColor(new Color(224, 180, 20));
+            g.fillOval((int) (x + radius * index * 1.25), y, radius, radius);
+
+            g.setColor(Color.WHITE);
+            g.drawOval((int) (x + radius * index * 1.25), y, radius, radius);
+        }
+
+        if (strengthTimer > 0) {
+
+            int boxWidth = 140;
+            int boxHeight = 36;
+
+            int boxX = panel.SCREEN_WIDTH - boxWidth - 10;
+            int boxY = 10;
+
+            g.setColor(new Color(0, 0, 0, 150));
+            g.fillRoundRect(boxX, boxY, boxWidth, boxHeight, 12, 12);
+
+            g.setColor(Color.WHITE);
+            g.drawRoundRect(boxX, boxY, boxWidth, boxHeight, 12, 12);
+
+            int potionSize = 18;
+            int potionX = boxX + 8;
+            int potionY = boxY + 9;
+
+            g.setColor(new Color(204, 101, 10));
+            g.fillOval(potionX, potionY, potionSize, potionSize);
+
+            g.setColor(Color.WHITE);
+            g.drawOval(potionX, potionY, potionSize, potionSize);
+
+            int totalSeconds = strengthTimer / 60;
+
+            int minutes = totalSeconds / 60;
+            int seconds = totalSeconds % 60;
+
+            String timeText;
+
+            if (minutes == 0) {
+                timeText = seconds + "s";
+            } else if (seconds == 0) {
+                timeText = minutes + "m";
+            } else {
+                timeText = minutes + "m " + seconds + "s";
+            }
+
+            g.drawString("STRENGTH",
+                    potionX + potionSize + 8,
+                    boxY + 15);
+
+            g.drawString(timeText,
+                    potionX + potionSize + 8,
+                    boxY + 30);
+        }
+    }
+
+    public void playerUpdate() {
+        for (Mob mob : panel.mobs) {
+            if (mob.worldIndex != panel.worldIndex)
+                continue;
+            mob.tickCooldown();
+            if (mob.collidesWithAny(characterX, characterY, size)) {
+                if (mob.canDamage()) {
+                    health--;
+                    mob.resetDamageCooldown();
+                }
+            }
+        }
+        if (strengthTimer > 0) {
+            strengthTimer--;
+
+            if (strengthTimer == 0) {
+                damageMultiplier = 1;
+            }
+        }
+    }
+
+    public void playerMovement() {
+        if (keyH.leftPressed)
+            velocityX -= ACCELERATION;
+        if (keyH.rightPressed)
+            velocityX += ACCELERATION;
+        if (!keyH.leftPressed && !keyH.rightPressed)
+            velocityX *= FRICTION;
+        velocityX = Math.max(-MAX_SPEED, Math.min(MAX_SPEED, velocityX));
+
+        double nextX = characterX + velocityX;
+
+        if (nextX <= 0 && panel.worldIndex > -1) {
+            double shift = (panel.SCREEN_WIDTH - size - 1) - 0;
+            panel.worldIndex--;
+            characterX = panel.SCREEN_WIDTH - size - 1;
+            velocityX = 0;
+            for (Mob mob : panel.mobs) {
+                mob.worldIndex = panel.worldIndex;
+                mob.setX((int) (mob.getX() + shift));
+            }
+            return;
+        }
+        if (nextX + size >= panel.SCREEN_WIDTH && panel.worldIndex < 1) {
+            double shift = 1 - panel.SCREEN_WIDTH;
+            panel.worldIndex++;
+            characterX = 1;
+            velocityX = 0;
+            for (Mob mob : panel.mobs) {
+                mob.worldIndex = panel.worldIndex;
+                mob.setX((int) (mob.getX() + shift));
+            }
+            return;
+        }
+
+        boolean blockedX = nextX <= 0 || nextX + size >= panel.SCREEN_WIDTH;
+        for (Tree tree : panel.worlds[panel.worldIndex + 1].trees) {
+            if (tree.collidesWithAny(nextX, characterY, size)) {
+                blockedX = true;
+                break;
+            }
+        }
+        if (!blockedX)
+            characterX = nextX;
+        else
+            velocityX = 0;
+
+        if (keyH.jumpPressed && isGrounded) {
+            velocityY = JUMP_FORCE;
+            isGrounded = false;
+        }
+        velocityY += GRAVITY;
+
+        double nextY = characterY + velocityY;
+        boolean blockedY = false;
+        for (Tree tree : panel.worlds[panel.worldIndex + 1].trees) {
+            if (tree.collidesWithAny(characterX, nextY, size)) {
+                blockedY = true;
+                break;
+            }
+        }
+        if (!blockedY)
+            characterY = nextY;
+        else {
+            if (velocityY > 0)
+                isGrounded = true;
+            velocityY = 0;
+        }
+
+        if (characterY >= GROUND) {
+            characterY = GROUND;
+            velocityY = 0;
+            isGrounded = true;
+        }
+    }
+
+    public void setPowerUp(PowerUp.Type type) {
+        switch (type) {
+            case HEALTH:
+                health += 4;
+                break;
+            case STRENGTH:
+                damageMultiplier = 2;
+                strengthTimer += 60 * 60;
+                break;
+            default:
+                break;
+        }
+    }
+
+    public void resetPosition() {
+        characterX = panel.SCREEN_WIDTH / 2 - size / 2;
+        characterY = GROUND;
+        velocityX = 0;
+        velocityY = 0;
+        isGrounded = false;
+    }
+
+    public boolean tooCloseToPlayer(double posX) {
+        return Math.abs(posX - characterX) < size * 2;
+    }
+}
