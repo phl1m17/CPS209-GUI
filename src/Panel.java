@@ -27,9 +27,9 @@ public class Panel extends JPanel implements Runnable {
     private final int SPAWN_INTERVAL = 30;
     ArrayList<Mob> mobs = new ArrayList<>();
 
-    int maxMobs = 3;
-    int worldIndex = 0;
-    World[] worlds = new World[3];
+    private int maxMobs = 2;
+    protected int worldIndex = 0;
+    protected World[] worlds = new World[3];
     int dayCount = 0;
     boolean wasDay = true;
 
@@ -166,15 +166,13 @@ public class Panel extends JPanel implements Runnable {
         boolean isDay = timeManager.isDay();
         if (isDay && !wasDay) {
             dayCount++;
-            if (dayCount % 2 == 0) {
-                for (int i = 0; i < worlds.length; i++) {
-                    worlds[i].spawnTrees();
-                }
+            for (World world : worlds) {
+                world.spawnTrees();
             }
-            if (dayCount % 4 == 0)
+            if (dayCount % 3 == 0)
                 maxMobs++;
 
-            if (dayCount % 1 == 0 && powerUp == null) {
+            if (dayCount % 4 == 0 && powerUp == null) {
                 spawnPowerUp();
             }
         }
@@ -208,7 +206,7 @@ public class Panel extends JPanel implements Runnable {
             return;
         }
 
-        if (!timeManager.isDay()) {
+        if (timeManager.getDayProgress() < 0.6) {
             spawnTimer++;
             if (spawnTimer >= SPAWN_INTERVAL && mobs.size() < maxMobs) {
                 int attempts = 0;
@@ -226,7 +224,7 @@ public class Panel extends JPanel implements Runnable {
                     attempts++;
                 }
                 if (candidate != null) {
-                    // mobs.add(candidate);
+                    mobs.add(candidate);
                 }
                 spawnTimer = 0;
             }

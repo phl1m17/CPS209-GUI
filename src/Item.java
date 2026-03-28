@@ -18,7 +18,7 @@ public class Item {
 
         switch (type) {
             case SWORD:
-                this.maxDurability = 10;
+                this.maxDurability = 20;
                 break;
             case AXE:
                 this.maxDurability = 5;

@@ -1,7 +1,7 @@
 import java.awt.Color;
 
 public class TimeManager {
-    private final int DAY_LENGTH = 60 * 10;
+    private final int DAY_LENGTH = 60 * 46;
     private int ticks = DAY_LENGTH / 4;
 
     public void update() {
