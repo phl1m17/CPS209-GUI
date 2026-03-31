@@ -32,7 +32,9 @@ public class GameOverScreen implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         active = false;
         restartButton.setVisible(false);
+        restartButton.setEnabled(false);
         panel.restart();
+        restartButton.setEnabled(true);
     }
 
     public void paint(Graphics2D g) {

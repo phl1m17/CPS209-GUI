@@ -20,8 +20,10 @@ public abstract class FloatingEntity {
     }
 
     public boolean collidesWithPlayer(double px, double py, int playerSize) {
-        return px + playerSize > x && px < x + size() &&
-                py + playerSize > y && py < y + size();
+        int playerW = 36;
+        int playerH = playerSize * 2;
+        return px + 14 + playerW > x && px + 14 < x + size() &&
+                py + playerH > y && py < y + size();
     }
 
     public boolean isCollected() {

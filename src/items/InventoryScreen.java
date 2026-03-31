@@ -56,7 +56,7 @@ public class InventoryScreen {
             g.setStroke(new BasicStroke(1));
 
             if (!slot.isEmpty()) {
-                slot.getItem().paint(g, slotX, slotY, size, false, false);
+                slot.getItem().paint(g, slotX, slotY, size, false, false, true);
             }
         }
 
@@ -85,7 +85,7 @@ public class InventoryScreen {
         g.drawRect(x, y, size, size);
 
         Item preview = result == Item.Type.SWORD ? swordPreview : axePreview;
-        preview.paint(g, x, y, size, true, false);
+        preview.paint(g, x, y, size, true, false, true);
 
         g.setColor(canCraft ? Color.WHITE : Color.GRAY);
         g.drawString(recipe, x - 60, y + size / 2 + 5);

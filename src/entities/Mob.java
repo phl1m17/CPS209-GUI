@@ -15,14 +15,6 @@ public abstract class Mob extends Character implements Clickable {
         characterX = x;
     }
 
-    public boolean collidesWithAny(double px, double py, int size) {
-        if (isRemoved())
-            return false;
-        int padding = 5;
-        return px + size > characterX + padding && px < characterX + this.size - padding &&
-                py + size > characterY + padding && py < characterY + this.size - padding;
-    }
-
     public void paintHealth(Graphics2D g, Object obj) {
         if (isRemoved())
             return;
@@ -45,7 +37,7 @@ public abstract class Mob extends Character implements Clickable {
     @Override
     public boolean containsPoint(int x, int y) {
         return x >= characterX && x <= characterX + size &&
-                y >= characterY && y <= characterY + size;
+                y >= characterY && y <= characterY + size * 2;
     }
 
     @Override

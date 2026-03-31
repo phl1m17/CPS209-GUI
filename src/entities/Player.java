@@ -31,7 +31,7 @@ public class Player extends Character {
         this.panel = panel;
 
         characterX = panel.SCREEN_WIDTH / 2 - size / 2;
-        characterY = panel.SCREEN_HEIGHT / 2 + size / 2;
+        characterY = panel.SCREEN_HEIGHT / 2 - size / 2;
         GROUND = (int) characterY;
 
         emptyInventory();
@@ -140,9 +140,48 @@ public class Player extends Character {
                 keyH.leftPressed, keyH.rightPressed, walkFrame,
                 new Color(255, 255, 129),
                 new Color(93, 174, 236));
+        paintFace(g);
         paintHUD(g);
+        paintItem(g);
         for (int i = 0; i < inventory.size(); i++) {
             inventory.get(i).paint(g, i, i == selectedSlot);
+        }
+    }
+
+    public void paintFace(Graphics2D g) {
+        g.setColor(Color.BLACK);
+        int x1 = keyH.leftPressed ? (int) characterX + 18
+                : keyH.rightPressed ? (int) characterX + 30 : (int) characterX + 24;
+        int eyeGap = 10;
+        int x2 = x1 + eyeGap + 3;
+        int y = (int) characterY + 15;
+
+        g.fillRect(x1, y, 3, 9);
+        g.fillRect(x2, y, 3, 9);
+    }
+
+    public void paintItem(Graphics2D g) {
+        Item item = getSelectedItem();
+        boolean left = keyH.leftPressed;
+        boolean right = keyH.rightPressed;
+        if (item != null) {
+            int gap = 0;
+            switch (item.getType()) {
+                case WOOD:
+                    gap = left ? -18 : right ? 24 : -18;
+                    break;
+
+                case AXE:
+                    gap = left ? -6 : right ? 18 : -8;
+                    break;
+                case SWORD:
+                    gap = left ? -2 : right ? 16 : -4;
+                    break;
+            }
+
+            int x = (int) characterX + gap;
+            int y = (int) characterY + 24;
+            item.paint(g, x, y, size / 2, true, true, right);
         }
     }
 
@@ -300,7 +339,7 @@ public class Player extends Character {
 
         boolean blockedX = nextX <= 0 || nextX + size >= panel.SCREEN_WIDTH;
         for (Tree tree : panel.worlds[panel.worldIndex + 1].trees) {
-            if (tree.collidesWithAny(nextX, characterY, size)) {
+            if (tree.collidesWithAny(nextX, characterY + size, size)) {
                 blockedX = true;
                 break;
             }
@@ -347,7 +386,7 @@ public class Player extends Character {
         double nextY = characterY + velocityY;
         boolean blockedY = false;
         for (Tree tree : panel.worlds[panel.worldIndex + 1].trees) {
-            if (tree.collidesWithAny(characterX, nextY, size)) {
+            if (tree.collidesWithAny(characterX, nextY + size, size)) {
                 blockedY = true;
                 break;
             }

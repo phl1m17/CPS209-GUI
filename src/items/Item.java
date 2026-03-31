@@ -1,6 +1,7 @@
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.geom.AffineTransform;
 
 public class Item {
     public enum Type {
@@ -66,7 +67,7 @@ public class Item {
         durability = maxDurability;
     }
 
-    public void paint(Graphics2D g, int x, int y, int size, boolean preview, boolean drop) {
+    public void paint(Graphics2D g, int x, int y, int size, boolean preview, boolean drop, boolean facingRight) {
         Color lightBrown = new Color(171, 120, 62);
         Color brown = new Color(115, 69, 17);
         Color darkBrown = new Color(82, 51, 16);
@@ -112,19 +113,58 @@ public class Item {
                 break;
 
             case AXE:
+                AffineTransform old = g.getTransform();
+
+                // Flip around the CENTER of the item box
+                if (!facingRight) {
+                    g.translate(x + size / 2, 0);
+                    g.scale(-1, 1);
+                    g.translate(-(x + size / 2), 0);
+                }
+
                 cx = x + size / 2 - size / 8;
                 itemSize = Math.max(2, size / 16);
 
-                int[] axeX = { cx - itemSize, cx + itemSize, cx + itemSize, cx - itemSize };
-                int[] axeY = { y + size / 4, y + size / 4, y + size - size / 16, y + size - size / 16 };
+                // Handle
+                int[] axeX = {
+                        cx - itemSize,
+                        cx + itemSize,
+                        cx + itemSize,
+                        cx - itemSize
+                };
+
+                int[] axeY = {
+                        y + size / 4,
+                        y + size / 4,
+                        y + size - size / 16,
+                        y + size - size / 16
+                };
+
                 g.setColor(darkBrown);
                 g.fillPolygon(axeX, axeY, 4);
 
+                // Blade
                 int axeOut = size * 5 / 16;
-                int[] axeX2 = { cx + itemSize, cx + itemSize + axeOut, cx + itemSize + axeOut, cx + itemSize };
-                int[] axeY2 = { y + size * 9 / 32, y + size * 3 / 16, y + size * 17 / 32, y + size * 7 / 16 };
+
+                int[] axeX2 = {
+                        cx + itemSize,
+                        cx + itemSize + axeOut,
+                        cx + itemSize + axeOut,
+                        cx + itemSize
+                };
+
+                int[] axeY2 = {
+                        y + size * 9 / 32,
+                        y + size * 3 / 16,
+                        y + size * 17 / 32,
+                        y + size * 7 / 16
+                };
+
                 g.setColor(lightBrown);
                 g.fillPolygon(axeX2, axeY2, 4);
+
+                g.setTransform(old);
+
                 break;
         }
         if (maxDurability > 0 && !preview) {

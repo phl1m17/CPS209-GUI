@@ -6,7 +6,7 @@ public class DroppedItem extends FloatingEntity {
     static final int ITEM_SIZE = 32;
 
     public DroppedItem(Item.Type type, int quantity, double x, double y) {
-        super(x, y, 5);
+        super(x, y, 8);
         this.type = type;
         this.quantity = quantity;
     }
@@ -28,6 +28,6 @@ public class DroppedItem extends FloatingEntity {
     public void paint(Graphics2D g) {
         if (collected)
             return;
-        new Item(type, quantity).paint(g, (int) x, (int) y, ITEM_SIZE, false, true);
+        new Item(type, quantity).paint(g, (int) x, (int) y, ITEM_SIZE, false, true, false);
     }
 }

@@ -37,57 +37,61 @@ public abstract class Character {
             Color shirtColor, Color pantsColor) {
         int px = (int) characterX;
         int py = (int) characterY;
-        int u = 2;
+
+        int headWidth = 36;
+        int headHeight = 36;
+        int bodyWidth = 24;
+        int bodyHeight = 44;
+        int legWidth = 12;
+        int legHeight = 42;
+        int armWidth = 10;
+        int armHeight = 10;
 
         // head
-        int headWidth = 16 * u;
-        int headHeight = 14 * u;
         int headX = px + size / 2 - headWidth / 2;
-        int headY = py + 2 * u;
+        int headY = py + 4;
         g.setColor(colour);
-        g.fillRoundRect(headX, headY, headWidth, headHeight, 6, 6);
+        g.fillRoundRect(headX, headY, headWidth, headHeight, 8, 8);
 
         // body
-        int bodyWidth = 10 * u;
-        int bodyHeight = 8 * u;
         int bodyX = px + size / 2 - bodyWidth / 2;
         int bodyY = headY + headHeight;
+
+        // legs
+        int legGap = 2;
+        int leftLegX = px + size / 2 - legWidth - legGap / 2;
+        int rightLegX = px + size / 2 + legGap / 2;
+        int legsY = bodyY + bodyHeight - 3;
+        int legOffset = (movingLeft || movingRight) ? (walkFrame ? 3 : -3) : 0;
+
+        g.setColor(pantsColor);
+        g.fillRoundRect(leftLegX, legsY, legWidth, legHeight - legOffset, 4, 4);
+        g.fillRoundRect(rightLegX, legsY, legWidth, legHeight + legOffset, 4, 4);
+
         g.setColor(shirtColor);
         g.fillRoundRect(bodyX, bodyY, bodyWidth, bodyHeight, 6, 6);
 
-        // pants
-        int pantsWidth1 = 2 * u;
-        int pantsWidth2 = 3 * u;
-        int pantsHeight1 = 2 * u;
-        int pantsHeight2 = 6 * u;
-        int pantsX1 = px + size / 2 - pantsWidth1 / 2;
-        int pantsX2 = pantsX1 - pantsWidth2;
-        int pantsX3 = pantsX1 + pantsWidth1;
-        int pantsY = bodyY + bodyHeight;
-        int legOffset = (movingLeft || movingRight) ? (walkFrame ? u : -u) : 0;
-
-        g.setColor(pantsColor);
-        g.fillRect(pantsX1, pantsY, pantsWidth1, pantsHeight1);
-        g.fillRect(pantsX2, pantsY, pantsWidth2, pantsHeight2 - legOffset);
-        g.fillRect(pantsX3, pantsY, pantsWidth2, pantsHeight2 + legOffset);
-
+        // boots
         g.setColor(Color.BLACK);
-        g.fillRect(pantsX2 - u, pantsY + pantsHeight2 - legOffset, pantsWidth2 + u, 2 * u);
-        g.fillRect(pantsX3, pantsY + pantsHeight2 + legOffset, pantsWidth2 + u, 2 * u);
+        g.fillRect(leftLegX - 2, legsY + legHeight - legOffset, legWidth + 2, 6);
+        g.fillRect(rightLegX, legsY + legHeight + legOffset, legWidth + 2, 6);
 
         // arms
-        int armsWidth = 4 * u;
-        int armsHeight = 3 * u;
-        int armsX1 = headX - u;
-        int armsX2 = headX + headWidth - 3 * u;
-        int armsY = headY + headHeight + 2 * u;
-        if (movingLeft)
-            armsX2 = headX + headWidth - 6 * u;
-        if (movingRight)
-            armsX1 = headX + armsWidth - 2 * u;
+        int leftArmX = bodyX - armWidth;
+        int rightArmX = bodyX + bodyWidth;
+        int armsY = bodyY + 4;
+        if (movingLeft) {
+            rightArmX = bodyX + bodyWidth - armWidth;
+        }
+        if (movingRight) {
+            leftArmX = bodyX;
+        }
 
         g.setColor(colour);
-        g.fillRoundRect(armsX1, armsY, armsWidth, armsHeight, 6, 6);
-        g.fillRoundRect(armsX2, armsY, armsWidth, armsHeight, 6, 6);
+        g.fillRoundRect(leftArmX, armsY, armWidth, armHeight, 4, 4);
+        g.fillRoundRect(rightArmX, armsY, armWidth, armHeight, 4, 4);
+
+        // g.setColor(Color.red);
+        // g.drawRect(px, py, size, size * 2);
     }
 }

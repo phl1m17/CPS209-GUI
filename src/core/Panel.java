@@ -46,7 +46,7 @@ public class Panel extends JPanel implements Runnable {
 
         restart();
 
-        mobs.add(new Zombie(SIZE, 1, Color.RED, this));
+        // mobs.add(new Zombie(SIZE, 1, Color.RED, this));
 
         addKeyListener(player.keyH);
     }

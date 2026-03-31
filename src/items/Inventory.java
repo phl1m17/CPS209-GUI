@@ -44,7 +44,7 @@ public class Inventory {
         g.setStroke(new BasicStroke(1));
 
         if (!isEmpty()) {
-            item.paint(g, slotX, slotY, size, false, false);
+            item.paint(g, slotX, slotY, size, false, false, true);
         }
     }
 }
