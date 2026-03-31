@@ -86,40 +86,43 @@ public class Item {
                 g.drawRect(woodX + 2, woodY + 2, woodSize - 4, woodSize - 4);
                 g.setStroke(new BasicStroke(1));
                 break;
-
             case SWORD:
                 int cx = x + size / 2;
-                int itemSize = size / 16;
+                int itemSize = Math.max(2, size / 16);
 
                 int[] swordX = { cx - itemSize, cx, cx + itemSize, cx + itemSize, cx - itemSize };
-                int[] swordY = { y + 16, y + 4, y + 16, y + size - 4, y + size - 4 };
+                int[] swordY = { y + size / 4, y + size / 16, y + size / 4, y + size - size / 16,
+                        y + size - size / 16 };
                 g.setColor(lightBrown);
                 g.fillPolygon(swordX, swordY, 5);
 
-                int handle = 16;
+                int handle = size / 4;
+                int guardThick = Math.max(2, size / 32);
                 int[] swordX2 = {
-                        x + handle, x + handle + 4, x + size - handle - 4, x + size - handle, x + size - handle - 4,
-                        x + handle + 4
+                        x + handle, x + handle + guardThick, x + size - handle - guardThick, x + size - handle,
+                        x + size - handle - guardThick, x + handle + guardThick
                 };
                 int[] swordY2 = {
-                        y + 2 * size / 3, y + 2 * size / 3 - 2, y + 2 * size / 3 - 2, y + 2 * size / 3,
-                        y + 2 * size / 3 + 2, y + 2 * size / 3 + 2
+                        y + 2 * size / 3, y + 2 * size / 3 - guardThick, y + 2 * size / 3 - guardThick,
+                        y + 2 * size / 3,
+                        y + 2 * size / 3 + guardThick, y + 2 * size / 3 + guardThick
                 };
                 g.setColor(darkBrown);
                 g.fillPolygon(swordX2, swordY2, 6);
                 break;
 
             case AXE:
-                cx = x + size / 2 - 8;
-                itemSize = size / 16;
+                cx = x + size / 2 - size / 8;
+                itemSize = Math.max(2, size / 16);
 
                 int[] axeX = { cx - itemSize, cx + itemSize, cx + itemSize, cx - itemSize };
-                int[] axeY = { y + 16, y + 16, y + size - 4, y + size - 4 };
+                int[] axeY = { y + size / 4, y + size / 4, y + size - size / 16, y + size - size / 16 };
                 g.setColor(darkBrown);
                 g.fillPolygon(axeX, axeY, 4);
 
-                int[] axeX2 = { cx + itemSize, cx + itemSize + 20, cx + itemSize + 20, cx + itemSize };
-                int[] axeY2 = { y + 18, y + 12, y + 34, y + 28 };
+                int axeOut = size * 5 / 16;
+                int[] axeX2 = { cx + itemSize, cx + itemSize + axeOut, cx + itemSize + axeOut, cx + itemSize };
+                int[] axeY2 = { y + size * 9 / 32, y + size * 3 / 16, y + size * 17 / 32, y + size * 7 / 16 };
                 g.setColor(lightBrown);
                 g.fillPolygon(axeX2, axeY2, 4);
                 break;
