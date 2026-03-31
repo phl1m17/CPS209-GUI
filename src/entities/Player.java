@@ -19,6 +19,8 @@ public class Player extends Character {
     protected int strengthTimer;
     protected boolean paintDamage = false;
     protected int paintDamageTimer = 0;
+    private boolean walkFrame = false;
+    private int walkTimer = 0;
 
     LinkedList<Inventory> inventory = new LinkedList<>();
     Panel panel;
@@ -134,12 +136,10 @@ public class Player extends Character {
     }
 
     public void paint(Graphics2D g) {
-        int px = (int) characterX;
-        int py = (int) characterY;
-
-        g.setColor(colour);
-        g.fillRect(px, py, size, size);
-
+        paintBody(g,
+                keyH.leftPressed, keyH.rightPressed, walkFrame,
+                new Color(255, 255, 129),
+                new Color(93, 174, 236));
         paintHUD(g);
         for (int i = 0; i < inventory.size(); i++) {
             inventory.get(i).paint(g, i, i == selectedSlot);
@@ -272,6 +272,16 @@ public class Player extends Character {
     public void playerMovement() {
         applyHorizontalMovement();
         applyVerticalMovement();
+        if (keyH.leftPressed || keyH.rightPressed) {
+            walkTimer++;
+            if (walkTimer >= 16) {
+                walkFrame = !walkFrame;
+                walkTimer = 0;
+            }
+        } else {
+            walkFrame = false;
+            walkTimer = 0;
+        }
     }
 
     private void applyHorizontalMovement() {

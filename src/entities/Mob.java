@@ -23,7 +23,7 @@ public abstract class Mob extends Character implements Clickable {
                 py + size > characterY + padding && py < characterY + this.size - padding;
     }
 
-    public void paintHealth(Graphics2D g) {
+    public void paintHealth(Graphics2D g, Object obj) {
         if (isRemoved())
             return;
         int barWidth = size;
