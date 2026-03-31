@@ -1,5 +1,5 @@
 import java.awt.Color;
-import java.awt.Graphics;
+import java.awt.Graphics2D;
 
 public class Tree implements Clickable {
     private int treeX;
@@ -23,7 +23,7 @@ public class Tree implements Clickable {
         treeY = panel.SCREEN_HEIGHT / 2 - (size) / 2 - size;
     }
 
-    public void paint(Graphics g) {
+    public void paint(Graphics2D g) {
         if (!removed) {
             g.setColor(new Color(115, 69, 17));
             g.fillRect(treeX, treeY, size, size * 3);
@@ -55,7 +55,8 @@ public class Tree implements Clickable {
             removed = true;
             Item selected = panel.player.getSelectedItem();
             int woodDrop = (selected != null && selected.getType() == Item.Type.AXE) ? 4 : 2;
-            panel.player.addItem(Item.Type.WOOD, woodDrop);
+            panel.worlds[panel.worldIndex + 1].dropItem(Item.Type.WOOD, woodDrop, treeX + DroppedItem.ITEM_SIZE / 2,
+                    panel.SCREEN_HEIGHT / 2 + DroppedItem.ITEM_SIZE + 15);
         }
     }
 

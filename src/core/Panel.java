@@ -27,7 +27,7 @@ public class Panel extends JPanel implements Runnable {
     private final int SPAWN_INTERVAL = 30;
     ArrayList<Mob> mobs = new ArrayList<>();
 
-    private int maxMobs = 2;
+    private int maxMobs;
     protected int worldIndex = 0;
     protected World[] worlds = new World[3];
     int dayCount = 0;
@@ -44,12 +44,11 @@ public class Panel extends JPanel implements Runnable {
         mainScreen = new MainScreen(this);
         gameOverScreen = new GameOverScreen(this);
 
-        worlds[0] = new World(this, SIZE);
-        worlds[1] = new World(this, SIZE);
-        worlds[2] = new World(this, SIZE);
+        restart();
+
+        mobs.add(new Zombie(SIZE, 1, Color.RED, this));
 
         addKeyListener(player.keyH);
-        addGameMouseListener();
     }
 
     private void addGameMouseListener() {
@@ -63,77 +62,93 @@ public class Panel extends JPanel implements Runnable {
                     return;
                 }
 
+                int mx = e.getX(), my = e.getY();
                 double reach = SIZE * 5;
-                Item selected = player.getSelectedItem();
 
-                for (Mob mob : new ArrayList<>(mobs)) {
-                    if (mob.worldIndex != worldIndex)
-                        continue;
-                    if (!mob.isRemoved() && mob.containsPoint(e.getX(), e.getY())) {
-                        double dx = mob.getX() - player.getX();
-                        double dy = mob.getY() - player.getY();
-                        if (Math.sqrt(dx * dx + dy * dy) <= reach) {
-                            int damage = 1;
-                            if (selected != null && selected.getType() == Item.Type.SWORD) {
-                                damage = 2;
-                                if (selected.useDurability()) {
-                                    player.breakOne(Item.Type.SWORD);
-                                }
-                            }
-                            damage *= player.damageMultiplier;
-                            mob.takeDamage(damage);
-                        }
-                        return;
-                    }
-                }
-                for (Tree tree : worlds[worldIndex + 1].trees) {
-                    if (!tree.isRemoved() && tree.containsPoint(e.getX(), e.getY())) {
-                        boolean mobOnTree = false;
-                        for (Mob mob : mobs) {
-                            if (!mob.isRemoved() && mob.containsPoint(e.getX(), e.getY())) {
-                                mobOnTree = true;
-                                break;
-                            }
-                        }
-                        if (!mobOnTree) {
-                            double dx = tree.getX() - player.getX();
-                            double dy = tree.getY() - player.getY();
-                            if (Math.sqrt(dx * dx + dy * dy) <= reach) {
-                                int damage = 1;
-                                if (selected != null && selected.getType() == Item.Type.AXE) {
-                                    damage = 2;
-                                    if (selected.useDurability()) {
-                                        player.breakOne(Item.Type.AXE);
-                                    }
-                                }
-                                tree.takeDamage(damage);
-                            }
-                        }
-                        return;
-                    }
-                }
-
-                for (int i = 0; i < player.inventory.size(); i++) {
-                    int slotX = (int) (16 + SIZE * i * 1.25);
-                    int slotY = SCREEN_HEIGHT - 30 - SIZE;
-                    if (e.getX() >= slotX && e.getX() <= slotX + SIZE &&
-                            e.getY() >= slotY && e.getY() <= slotY + SIZE) {
-                        player.setSelectedSlot(i);
-                        break;
-                    }
-                }
+                if (tryHitMob(mx, my, reach))
+                    return;
+                if (tryHitTree(mx, my, reach))
+                    return;
+                trySelectSlot(mx, my);
             }
         });
     }
 
+    private boolean tryHitMob(int mx, int my, double reach) {
+        for (Mob mob : new ArrayList<>(mobs)) {
+            if (mob.worldIndex != worldIndex || mob.isRemoved())
+                continue;
+            if (!mob.containsPoint(mx, my))
+                continue;
+            if (distanceTo(mob) > reach)
+                return true;
+
+            Item selected = player.getSelectedItem();
+            int damage = calcDamage(selected, Item.Type.SWORD);
+            mob.takeDamage(damage);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean tryHitTree(int mx, int my, double reach) {
+        for (Tree tree : worlds[worldIndex + 1].trees) {
+            if (tree.isRemoved() || !tree.containsPoint(mx, my))
+                continue;
+            if (mobAt(mx, my))
+                return true;
+
+            if (distanceTo(tree) <= reach) {
+                Item selected = player.getSelectedItem();
+                int damage = calcDamage(selected, Item.Type.AXE);
+                tree.takeDamage(damage);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private void trySelectSlot(int mx, int my) {
+        for (int i = 0; i < player.inventory.size(); i++) {
+            int slotX = (int) (16 + SIZE * i * 1.25);
+            int slotY = SCREEN_HEIGHT - 30 - SIZE;
+            if (mx >= slotX && mx <= slotX + SIZE && my >= slotY && my <= slotY + SIZE) {
+                player.setSelectedSlot(i);
+                return;
+            }
+        }
+    }
+
+    private int calcDamage(Item selected, Item.Type toolType) {
+        int damage = 1;
+        if (selected != null && selected.getType() == toolType) {
+            damage = 2;
+            if (selected.useDurability())
+                player.breakOne(toolType);
+        }
+        return damage * player.damageMultiplier;
+    }
+
+    private double distanceTo(Clickable target) {
+        double dx = target.getX() - player.getX();
+        double dy = target.getY() - player.getY();
+        return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    private boolean mobAt(int mx, int my) {
+        for (Mob mob : mobs) {
+            if (!mob.isRemoved() && mob.containsPoint(mx, my))
+                return true;
+        }
+        return false;
+    }
+
     public void restart() {
-        player.health = player.maxHealth;
-        player.emptyInventory();
-        player.resetPosition();
+        player.playerRestart();
 
         mobs.clear();
         spawnTimer = 0;
-        maxMobs = 3;
+        maxMobs = 2;
         dayCount = 0;
         wasDay = true;
 
@@ -178,10 +193,10 @@ public class Panel extends JPanel implements Runnable {
         }
 
         if (powerUp != null) {
-            powerUp.animatePowerUp();
+            powerUp.animate();
 
             if (powerUp != null && powerUp.worldIndex == worldIndex + 1) {
-                if (powerUp.collides((int) player.getX(), (int) player.getY(), SIZE)) {
+                if (powerUp.collidesWithPlayer((int) player.getX(), (int) player.getY(), SIZE)) {
                     player.setPowerUp(powerUp.getType());
                     powerUp = null;
                 }
@@ -193,11 +208,18 @@ public class Panel extends JPanel implements Runnable {
             w.update();
         }
 
+        for (DroppedItem drop : worlds[worldIndex + 1].droppedItems) {
+            if (!drop.isCollected() && drop.collidesWithPlayer(player.getX(), player.getY(), SIZE)) {
+                player.addItem(drop.getType(), drop.getQuantity());
+                drop.collect();
+            }
+        }
+
         mobs.removeIf(mob -> mob.isRemoved());
 
         for (Mob mob : mobs) {
             if (mob.worldIndex == worldIndex) {
-                mob.moveMob(player.getX());
+                mob.update(player.getX());
             }
         }
 
@@ -206,7 +228,7 @@ public class Panel extends JPanel implements Runnable {
             return;
         }
 
-        if (timeManager.getDayProgress() < 0.6) {
+        if (timeManager.getDayProgress() < 0.6 || !timeManager.isDay()) {
             spawnTimer++;
             if (spawnTimer >= SPAWN_INTERVAL && mobs.size() < maxMobs) {
                 int attempts = 0;
@@ -216,7 +238,7 @@ public class Panel extends JPanel implements Runnable {
                             44 + (int) (Math.random() * 100),
                             74 + (int) (Math.random() * 100),
                             38 + (int) (Math.random() * 100));
-                    Mob m = new Mob(SIZE, 4, mobColour, this, worldIndex);
+                    Mob m = new Zombie(SIZE, 4, mobColour, this);
                     if (!player.tooCloseToPlayer(m.getX())) {
                         candidate = m;
                         break;
@@ -231,10 +253,18 @@ public class Panel extends JPanel implements Runnable {
         } else {
             spawnTimer = 0;
         }
+
+        for (DroppedItem drop : worlds[worldIndex + 1].droppedItems) {
+            if (!drop.isCollected() && drop.collidesWithPlayer(player.getX(), player.getY(), SIZE)) {
+                player.addItem(drop.getType(), drop.getQuantity());
+                drop.collect();
+            }
+        }
     }
 
     private void spawnPowerUp() {
-        powerUp = new PowerUp(this, (int) (Math.random() * 2), SIZE);
+        int randomWorld = (int) (Math.random() * 3);
+        powerUp = new PowerUp(this, (int) (Math.random() * 2), SIZE, randomWorld);
     }
 
     @Override
@@ -250,7 +280,7 @@ public class Panel extends JPanel implements Runnable {
                 }
             }
             if (powerUp != null) {
-                powerUp.paintComponent(g2);
+                powerUp.paint(g2);
             }
             if (player.keyH.pausePressed || player.keyH.inventoryPressed) {
                 g2.setColor(new Color(0, 0, 0, 100));
@@ -259,6 +289,7 @@ public class Panel extends JPanel implements Runnable {
                     inventoryScreen.paint(g2);
                 }
             }
+            player.paintDamage(g2);
             gameOverScreen.paint(g2);
         } else {
             mainScreen.paint(g2);

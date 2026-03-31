@@ -17,6 +17,8 @@ public class Player extends Character {
     private int selectedSlot = 0;
     protected int damageMultiplier = 1;
     protected int strengthTimer;
+    protected boolean paintDamage = false;
+    protected int paintDamageTimer = 0;
 
     LinkedList<Inventory> inventory = new LinkedList<>();
     Panel panel;
@@ -223,24 +225,56 @@ public class Player extends Character {
         for (Mob mob : panel.mobs) {
             if (mob.worldIndex != panel.worldIndex)
                 continue;
-            mob.tickCooldown();
-            if (mob.collidesWithAny(characterX, characterY, size)) {
-                if (mob.canDamage()) {
-                    health--;
-                    mob.resetDamageCooldown();
+            if (mob instanceof Zombie) {
+                Zombie z = (Zombie) mob;
+                if (z.collidesWithAny(characterX, characterY, size)) {
+                    if (z.canDamage()) {
+                        damagePlayer();
+                        z.resetDamageCooldown();
+                    }
                 }
             }
         }
         if (strengthTimer > 0) {
             strengthTimer--;
-
-            if (strengthTimer == 0) {
+            if (strengthTimer == 0)
                 damageMultiplier = 1;
-            }
         }
     }
 
+    public void damagePlayer() {
+        health--;
+        paintDamage = true;
+    }
+
+    public void paintDamage(Graphics2D g) {
+        if (paintDamage) {
+            if (paintDamageTimer < 20) {
+                paintDamageTimer++;
+            } else {
+                paintDamage = false;
+                paintDamageTimer = 0;
+            }
+            g.setColor(new Color(255, 25, 25, 30));
+            g.fillRect(0, 0, panel.SCREEN_WIDTH, panel.SCREEN_HEIGHT);
+        }
+    }
+
+    public void playerRestart() {
+        health = maxHealth;
+        emptyInventory();
+        resetPosition();
+        strengthTimer = 0;
+        damageMultiplier = 1;
+        paintDamage = false;
+    }
+
     public void playerMovement() {
+        applyHorizontalMovement();
+        applyVerticalMovement();
+    }
+
+    private void applyHorizontalMovement() {
         if (keyH.leftPressed)
             velocityX -= ACCELERATION;
         if (keyH.rightPressed)
@@ -251,28 +285,8 @@ public class Player extends Character {
 
         double nextX = characterX + velocityX;
 
-        if (nextX <= 0 && panel.worldIndex > -1) {
-            double shift = (panel.SCREEN_WIDTH - size - 1) - 0;
-            panel.worldIndex--;
-            characterX = panel.SCREEN_WIDTH - size - 1;
-            velocityX = 0;
-            for (Mob mob : panel.mobs) {
-                mob.worldIndex = panel.worldIndex;
-                mob.setX((int) (mob.getX() + shift));
-            }
+        if (tryWorldTransition(nextX))
             return;
-        }
-        if (nextX + size >= panel.SCREEN_WIDTH && panel.worldIndex < 1) {
-            double shift = 1 - panel.SCREEN_WIDTH;
-            panel.worldIndex++;
-            characterX = 1;
-            velocityX = 0;
-            for (Mob mob : panel.mobs) {
-                mob.worldIndex = panel.worldIndex;
-                mob.setX((int) (mob.getX() + shift));
-            }
-            return;
-        }
 
         boolean blockedX = nextX <= 0 || nextX + size >= panel.SCREEN_WIDTH;
         for (Tree tree : panel.worlds[panel.worldIndex + 1].trees) {
@@ -285,7 +299,35 @@ public class Player extends Character {
             characterX = nextX;
         else
             velocityX = 0;
+    }
 
+    private boolean tryWorldTransition(double nextX) {
+        if (nextX <= 0 && panel.worldIndex > -1) {
+            double shift = panel.SCREEN_WIDTH - size - 1;
+            panel.worldIndex--;
+            characterX = panel.SCREEN_WIDTH - size - 1;
+            velocityX = 0;
+            for (Mob mob : panel.mobs) {
+                mob.worldIndex = panel.worldIndex;
+                mob.setX((int) (mob.getX() + shift));
+            }
+            return true;
+        }
+        if (nextX + size >= panel.SCREEN_WIDTH && panel.worldIndex < 1) {
+            double shift = -(panel.SCREEN_WIDTH - size - 1);
+            panel.worldIndex++;
+            characterX = 1;
+            velocityX = 0;
+            for (Mob mob : panel.mobs) {
+                mob.worldIndex = panel.worldIndex;
+                mob.setX((int) (mob.getX() + shift));
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private void applyVerticalMovement() {
         if (keyH.jumpPressed && isGrounded) {
             velocityY = JUMP_FORCE;
             isGrounded = false;

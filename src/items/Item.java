@@ -21,7 +21,7 @@ public class Item {
                 this.maxDurability = 20;
                 break;
             case AXE:
-                this.maxDurability = 5;
+                this.maxDurability = 10;
                 break;
             default:
                 this.maxDurability = -1;
@@ -66,7 +66,7 @@ public class Item {
         durability = maxDurability;
     }
 
-    public void paint(Graphics2D g, int x, int y, int size, boolean preview) {
+    public void paint(Graphics2D g, int x, int y, int size, boolean preview, boolean drop) {
         Color lightBrown = new Color(171, 120, 62);
         Color brown = new Color(115, 69, 17);
         Color darkBrown = new Color(82, 51, 16);
@@ -131,7 +131,7 @@ public class Item {
             g.setColor(durability > maxDurability / 2 ? Color.GREEN : Color.ORANGE);
             g.fillRect(x, y + size - 4, barW, 4);
         }
-        if (quantity > 1) {
+        if (quantity > 1 && !drop) {
             g.setColor(Color.WHITE);
             g.drawString(String.valueOf(quantity), x + size - 12, y + size - 4);
         }

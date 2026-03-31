@@ -1,11 +1,12 @@
 import java.awt.Color;
-import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.util.ArrayList;
 
 public class World {
     Panel panel;
     int size;
     ArrayList<Tree> trees = new ArrayList<>();
+    ArrayList<DroppedItem> droppedItems = new ArrayList<>();
     private final int MAX_TREES = 2;
 
     public World(Panel panel, int size) {
@@ -14,14 +15,10 @@ public class World {
         spawnTrees();
     }
 
-    public void update() {
-        trees.removeIf(tree -> tree.isRemoved());
-    }
-
     public void spawnTrees() {
         int attempts = 0;
         while (trees.size() < MAX_TREES && attempts < 100) {
-            Tree candidate = new Tree(panel, panel.SIZE, 2);
+            Tree candidate = new Tree(panel, panel.SIZE, 4);
 
             boolean overlapsTree = false;
             for (Tree existing : trees) {
@@ -41,7 +38,19 @@ public class World {
         }
     }
 
-    public void paint(Graphics g) {
+    public void dropItem(Item.Type type, int quantity, double x, double y) {
+        droppedItems.add(new DroppedItem(type, quantity, x, y));
+    }
+
+    public void update() {
+        trees.removeIf(tree -> tree.isRemoved());
+        droppedItems.removeIf(drop -> drop.isCollected());
+        for (DroppedItem drop : droppedItems) {
+            drop.animate();
+        }
+    }
+
+    public void paint(Graphics2D g) {
         g.setColor(panel.timeManager.getSkyColor());
         g.fillRect(0, 0, panel.SCREEN_WIDTH, panel.SCREEN_HEIGHT);
 
@@ -58,6 +67,11 @@ public class World {
         for (Tree tree : trees) {
             tree.paint(g);
         }
+
+        for (DroppedItem drop : droppedItems) {
+            drop.paint(g);
+        }
+
         g.setColor(panel.timeManager.isDay() ? Color.YELLOW : Color.WHITE);
         g.fillOval(10, 10, 16, 16);
     }

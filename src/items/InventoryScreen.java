@@ -47,21 +47,6 @@ public class InventoryScreen {
             Inventory slot = panel.player.inventory.get(i);
             int slotX = screenX + padding + i * (size + padding);
             int slotY = screenY + padding * 3 + 20;
-            g.setColor(new Color(50, 50, 50));
-            g.fillRect(slotX, slotY, size, size);
-            g.setColor(new Color(173, 173, 173));
-            g.setStroke(new BasicStroke(2));
-            g.drawRect(slotX, slotY, size, size);
-            g.setStroke(new BasicStroke(1));
-            if (!slot.isEmpty()) {
-                slot.getItem().paint(g, slotX, slotY, size, false);
-            }
-        }
-
-        for (int i = 0; i < panel.player.inventory.size(); i++) {
-            Inventory slot = panel.player.inventory.get(i);
-            int slotX = screenX + padding + i * (size + padding);
-            int slotY = screenY + padding * 3 + 20;
 
             g.setColor(new Color(50, 50, 50));
             g.fillRect(slotX, slotY, size, size);
@@ -69,8 +54,9 @@ public class InventoryScreen {
             g.setStroke(new BasicStroke(2));
             g.drawRect(slotX, slotY, size, size);
             g.setStroke(new BasicStroke(1));
+
             if (!slot.isEmpty()) {
-                slot.getItem().paint(g, slotX, slotY, size, false);
+                slot.getItem().paint(g, slotX, slotY, size, false, false);
             }
         }
 
@@ -99,7 +85,7 @@ public class InventoryScreen {
         g.drawRect(x, y, size, size);
 
         Item preview = result == Item.Type.SWORD ? swordPreview : axePreview;
-        preview.paint(g, x, y, size, true);
+        preview.paint(g, x, y, size, true, false);
 
         g.setColor(canCraft ? Color.WHITE : Color.GRAY);
         g.drawString(recipe, x - 60, y + size / 2 + 5);
