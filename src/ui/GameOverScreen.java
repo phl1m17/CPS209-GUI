@@ -12,6 +12,7 @@ public class GameOverScreen implements ActionListener {
     private final Font titleFont = new Font("Arial", Font.BOLD, 40);
     private final Font defaultFont = new Font("Arial", Font.PLAIN, 12);
     private JButton restartButton;
+    private JButton quitButton;
 
     public GameOverScreen(Panel panel) {
         this.panel = panel;
@@ -20,21 +21,34 @@ public class GameOverScreen implements ActionListener {
         restartButton.setBounds(panel.SCREEN_WIDTH / 2 - 80, panel.SCREEN_HEIGHT / 2 + 20, 160, 40);
         restartButton.addActionListener(this);
         restartButton.setVisible(false);
+
+        quitButton = new JButton("Quit");
+        quitButton.setBounds(panel.SCREEN_WIDTH / 2 - 80, panel.SCREEN_HEIGHT / 2 + 80, 160, 40);
+        quitButton.addActionListener(this);
+        quitButton.setVisible(false);
+
         panel.add(restartButton);
+        panel.add(quitButton);
     }
 
     public void show() {
         active = true;
         restartButton.setVisible(true);
+        quitButton.setVisible(true);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        active = false;
-        restartButton.setVisible(false);
-        restartButton.setEnabled(false);
-        panel.restart();
-        restartButton.setEnabled(true);
+        if (e.getSource() == restartButton) {
+            active = false;
+            restartButton.setVisible(false);
+            restartButton.setEnabled(false);
+            panel.restart();
+            restartButton.setEnabled(true);
+        }
+        if (e.getSource() == quitButton) {
+            System.exit(0);
+        }
     }
 
     public void paint(Graphics2D g) {
