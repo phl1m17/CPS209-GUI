@@ -58,6 +58,8 @@ public class Panel extends JPanel implements Runnable {
                 continue;
             if (distanceTo(mob) > reach)
                 return true;
+            if (blockInTheWay(mx, my))
+                return true;
 
             Item selected = player.getSelectedItem();
             int damage = calcDamage(selected, Item.Type.SWORD);
@@ -158,6 +160,44 @@ public class Panel extends JPanel implements Runnable {
             }
         }
         return false;
+    }
+
+    private boolean blockInTheWay(int mx, int my) {
+        double x1 = player.getX() + player.size / 2.0;
+        double y1 = player.getY() + player.size;
+        double x2 = mx, y2 = my;
+
+        for (Block b : worlds[worldIndex + 1].blocks) {
+            if (lineIntersectsRect(x1, y1, x2, y2,
+                    b.getX(), b.getY(), b.getSize(), b.getSize()))
+                return true;
+        }
+        return false;
+    }
+
+    private boolean lineIntersectsRect(double x1, double y1, double x2, double y2,
+            double rx, double ry, double rw, double rh) {
+        if (x1 >= rx && x1 <= rx + rw && y1 >= ry && y1 <= ry + rh)
+            return false;
+        if (x2 >= rx && x2 <= rx + rw && y2 >= ry && y2 <= ry + rh)
+            return true;
+
+        return lineSegmentsIntersect(x1, y1, x2, y2, rx, ry, rx + rw, ry)
+                || lineSegmentsIntersect(x1, y1, x2, y2, rx, ry + rh, rx + rw, ry + rh)
+                || lineSegmentsIntersect(x1, y1, x2, y2, rx, ry, rx, ry + rh)
+                || lineSegmentsIntersect(x1, y1, x2, y2, rx + rw, ry, rx + rw, ry + rh);
+    }
+
+    private boolean lineSegmentsIntersect(double x1, double y1, double x2, double y2,
+            double x3, double y3, double x4, double y4) {
+        double d1x = x2 - x1, d1y = y2 - y1;
+        double d2x = x4 - x3, d2y = y4 - y3;
+        double cross = d1x * d2y - d1y * d2x;
+        if (cross == 0)
+            return false;
+        double t = ((x3 - x1) * d2y - (y3 - y1) * d2x) / cross;
+        double u = ((x3 - x1) * d1y - (y3 - y1) * d1x) / cross;
+        return t >= 0 && t <= 1 && u >= 0 && u <= 1;
     }
 
     private double distanceTo(Clickable target) {
