@@ -107,12 +107,14 @@ public class Player extends Character {
 
     public boolean canCraft(Item.Type result) {
         Inventory woodSlot = findSlot(Item.Type.WOOD);
+        Inventory plankSlot = findSlot(Item.Type.PLANK);
         int woodQty = woodSlot == null ? 0 : woodSlot.getItem().getQuantity();
+        int plankQty = plankSlot == null ? 0 : plankSlot.getItem().getQuantity();
         switch (result) {
             case SWORD:
-                return woodQty >= 6;
+                return woodQty >= 6 || plankQty >= 24;
             case AXE:
-                return woodQty >= 4;
+                return woodQty >= 4 || plankQty >= 16;
             case PLANK:
                 return woodQty >= 1;
             default:
@@ -121,16 +123,31 @@ public class Player extends Character {
     }
 
     public boolean craft(Item.Type result) {
+        Inventory woodSlot = findSlot(Item.Type.WOOD);
+        Inventory plankSlot = findSlot(Item.Type.PLANK);
+        int woodQty = woodSlot == null ? 0 : woodSlot.getItem().getQuantity();
+        int plankQty = plankSlot == null ? 0 : plankSlot.getItem().getQuantity();
         if (!canCraft(result))
             return false;
         switch (result) {
             case SWORD:
-                addItem(Item.Type.WOOD, -6);
-                addItem(Item.Type.SWORD, 1);
+                if (woodQty > plankQty) {
+                    addItem(Item.Type.WOOD, -6);
+                    addItem(Item.Type.SWORD, 1);
+                } else {
+                    addItem(Item.Type.PLANK, -24);
+                    addItem(Item.Type.SWORD, 1);
+                }
+
                 return true;
             case AXE:
-                addItem(Item.Type.WOOD, -4);
-                addItem(Item.Type.AXE, 1);
+                if (woodQty > plankQty) {
+                    addItem(Item.Type.WOOD, -4);
+                    addItem(Item.Type.AXE, 1);
+                } else {
+                    addItem(Item.Type.PLANK, -16);
+                    addItem(Item.Type.AXE, 1);
+                }
                 return true;
             case PLANK:
                 addItem(Item.Type.WOOD, -1);
