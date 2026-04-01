@@ -12,7 +12,7 @@ public class Player extends Character {
     private boolean isGrounded = false;
     private final double GRAVITY = 0.5;
     private final double JUMP_FORCE = -12;
-    private final int MAX_SLOTS = 3;
+    private final int MAX_SLOTS = 4;
     private int GROUND;
     private int selectedSlot = 0;
     protected int damageMultiplier = 1;

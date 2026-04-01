@@ -121,10 +121,11 @@ public class Panel extends JPanel implements Runnable {
         if (my >= groundY)
             return false;
 
-        double dx = mx - player.getX();
-        double dy = my - player.getY();
+        double dist = Math.sqrt(
+                Math.pow(mx - player.getX(), 2) +
+                        Math.pow(my - player.getY(), 2));
 
-        if (Math.sqrt(dx * dx + dy * dy) > reach)
+        if (dist > reach)
             return false;
 
         int gridX = (mx / SIZE) * SIZE;
@@ -342,14 +343,23 @@ public class Panel extends JPanel implements Runnable {
             public void mouseDragged(MouseEvent e) {
                 mouseX = e.getX();
                 mouseY = e.getY();
+                if (player.keyH.inventoryPressed)
+                    inventoryScreen.handleDrag(e.getX(), e.getY());
             }
         });
         addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                if (player.keyH.inventoryPressed)
+                    inventoryScreen.handleRelease(e.getX(), e.getY());
+            }
+
             @Override
             public void mousePressed(MouseEvent e) {
                 if (player.keyH.pausePressed || mainScreen.active || gameOverScreen.active)
                     return;
                 if (player.keyH.inventoryPressed) {
+                    inventoryScreen.handlePress(e.getX(), e.getY());
                     inventoryScreen.handleClick(e.getX(), e.getY());
                     return;
                 }

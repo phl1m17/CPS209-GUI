@@ -51,5 +51,7 @@ public class KeyHandler implements KeyListener {
             panel.player.setSelectedSlot(1);
         if (key == KeyEvent.VK_3 && !pausePressed && !panel.gameOverScreen.active && !panel.mainScreen.active)
             panel.player.setSelectedSlot(2);
+        if (key == KeyEvent.VK_4 && !pausePressed && !panel.gameOverScreen.active && !panel.mainScreen.active)
+            panel.player.setSelectedSlot(3);
     }
 }
