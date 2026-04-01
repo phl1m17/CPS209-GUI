@@ -5,7 +5,7 @@ import java.awt.geom.AffineTransform;
 
 public class Item {
     public enum Type {
-        WOOD, SWORD, AXE
+        WOOD, SWORD, AXE, PLANK
     }
 
     private Type type;
@@ -68,22 +68,20 @@ public class Item {
     }
 
     public void paint(Graphics2D g, int x, int y, int size, boolean preview, boolean drop, boolean facingRight) {
-        Color lightBrown = new Color(171, 120, 62);
         Color brown = new Color(115, 69, 17);
-        Color darkBrown = new Color(82, 51, 16);
         switch (type) {
             case WOOD:
                 int woodSize = (int) (size / 1.5);
                 int woodX = x + size / 2 - woodSize / 2;
                 int woodY = y + size / 2 - woodSize / 2;
 
-                g.setColor(lightBrown);
+                g.setColor(brown.brighter());
                 g.fillRect(woodX, woodY, woodSize, woodSize);
                 g.setColor(brown);
                 g.setStroke(new BasicStroke(8));
                 g.drawRect(woodX + 4, woodY + 4, woodSize - 8, woodSize - 8);
                 g.setStroke(new BasicStroke(4));
-                g.setColor(darkBrown);
+                g.setColor(brown.darker());
                 g.drawRect(woodX + 2, woodY + 2, woodSize - 4, woodSize - 4);
                 g.setStroke(new BasicStroke(1));
                 break;
@@ -94,7 +92,7 @@ public class Item {
                 int[] swordX = { cx - itemSize, cx, cx + itemSize, cx + itemSize, cx - itemSize };
                 int[] swordY = { y + size / 4, y + size / 16, y + size / 4, y + size - size / 16,
                         y + size - size / 16 };
-                g.setColor(lightBrown);
+                g.setColor(brown.brighter());
                 g.fillPolygon(swordX, swordY, 5);
 
                 int handle = size / 4;
@@ -108,14 +106,13 @@ public class Item {
                         y + 2 * size / 3,
                         y + 2 * size / 3 + guardThick, y + 2 * size / 3 + guardThick
                 };
-                g.setColor(darkBrown);
+                g.setColor(brown.darker());
                 g.fillPolygon(swordX2, swordY2, 6);
                 break;
 
             case AXE:
                 AffineTransform old = g.getTransform();
 
-                // Flip around the CENTER of the item box
                 if (!facingRight) {
                     g.translate(x + size / 2, 0);
                     g.scale(-1, 1);
@@ -125,7 +122,6 @@ public class Item {
                 cx = x + size / 2 - size / 8;
                 itemSize = Math.max(2, size / 16);
 
-                // Handle
                 int[] axeX = {
                         cx - itemSize,
                         cx + itemSize,
@@ -140,10 +136,9 @@ public class Item {
                         y + size - size / 16
                 };
 
-                g.setColor(darkBrown);
+                g.setColor(brown.darker());
                 g.fillPolygon(axeX, axeY, 4);
 
-                // Blade
                 int axeOut = size * 5 / 16;
 
                 int[] axeX2 = {
@@ -160,11 +155,29 @@ public class Item {
                         y + size * 7 / 16
                 };
 
-                g.setColor(lightBrown);
+                g.setColor(brown.brighter());
                 g.fillPolygon(axeX2, axeY2, 4);
 
                 g.setTransform(old);
 
+                break;
+            case PLANK:
+                Color plankLight = new Color(210, 160, 90);
+                Color plankDark = new Color(150, 100, 40);
+                int plankSize = (int) (size / 1.5);
+                int plankX = x + size / 2 - plankSize / 2;
+                int plankY = y + size / 2 - plankSize / 2;
+                g.setColor(plankLight);
+                g.fillRect(plankX, plankY, plankSize, plankSize);
+                g.setColor(plankDark);
+                g.drawRect(plankX, plankY, plankSize, plankSize);
+                g.drawLine(plankX, plankY + plankSize / 3, plankX + plankSize, plankY + plankSize / 3);
+                g.drawLine(plankX, plankY + 2 * plankSize / 3, plankX + plankSize, plankY + 2 * plankSize / 3);
+                g.drawLine(plankX + plankSize / 2, plankY, plankX + plankSize / 2, plankY + plankSize / 3);
+                g.drawLine(plankX + plankSize / 2, plankY + 2 * plankSize / 3, plankX + plankSize / 2,
+                        plankY + plankSize);
+                break;
+            default:
                 break;
         }
         if (maxDurability > 0 && !preview) {

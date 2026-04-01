@@ -1,3 +1,4 @@
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 
@@ -5,14 +6,14 @@ public abstract class Character {
     protected int size;
     protected int maxHealth;
     protected int health;
-    protected final Color colour;
+    protected final Color color;
     protected double characterX, characterY;
 
-    public Character(int size, int maxHealth, Color colour) {
+    public Character(int size, int maxHealth, Color color) {
         this.size = size;
         this.maxHealth = maxHealth;
         this.health = maxHealth;
-        this.colour = colour;
+        this.color = color;
     }
 
     public double getX() {
@@ -42,16 +43,19 @@ public abstract class Character {
         int headHeight = 36;
         int bodyWidth = 24;
         int bodyHeight = 44;
-        int legWidth = 12;
-        int legHeight = 42;
+        int legWidth = 10;
+        int legHeight = 44;
         int armWidth = 10;
         int armHeight = 10;
 
         // head
         int headX = px + size / 2 - headWidth / 2;
         int headY = py + 4;
-        g.setColor(colour);
+        g.setColor(color);
         g.fillRoundRect(headX, headY, headWidth, headHeight, 8, 8);
+        g.setColor(color.darker());
+        g.setStroke(new BasicStroke(2));
+        g.drawRoundRect(headX, headY, headWidth, headHeight, 8, 8);
 
         // body
         int bodyX = px + size / 2 - bodyWidth / 2;
@@ -67,14 +71,19 @@ public abstract class Character {
         g.setColor(pantsColor);
         g.fillRoundRect(leftLegX, legsY, legWidth, legHeight - legOffset, 4, 4);
         g.fillRoundRect(rightLegX, legsY, legWidth, legHeight + legOffset, 4, 4);
+        g.setColor(pantsColor.darker());
+        g.drawRoundRect(leftLegX, legsY, legWidth, legHeight - legOffset, 4, 4);
+        g.drawRoundRect(rightLegX, legsY, legWidth, legHeight + legOffset, 4, 4);
 
         g.setColor(shirtColor);
         g.fillRoundRect(bodyX, bodyY, bodyWidth, bodyHeight, 6, 6);
+        g.setColor(shirtColor.darker());
+        g.drawRoundRect(bodyX, bodyY, bodyWidth, bodyHeight, 6, 6);
 
         // boots
         g.setColor(Color.BLACK);
-        g.fillRect(leftLegX - 2, legsY + legHeight - legOffset, legWidth + 2, 6);
-        g.fillRect(rightLegX, legsY + legHeight + legOffset, legWidth + 2, 6);
+        g.fillRoundRect(leftLegX - 4, legsY + legHeight - legOffset - 2, legWidth + 4, 6, 3, 3);
+        g.fillRoundRect(rightLegX, legsY + legHeight + legOffset - 2, legWidth + 4, 6, 3, 3);
 
         // arms
         int leftArmX = bodyX - armWidth;
@@ -86,12 +95,12 @@ public abstract class Character {
         if (movingRight) {
             leftArmX = bodyX;
         }
-
-        g.setColor(colour);
+        g.setStroke(new BasicStroke(1));
+        g.setColor(color);
         g.fillRoundRect(leftArmX, armsY, armWidth, armHeight, 4, 4);
         g.fillRoundRect(rightArmX, armsY, armWidth, armHeight, 4, 4);
-
-        // g.setColor(Color.red);
-        // g.drawRect(px, py, size, size * 2);
+        g.setColor(color.darker());
+        g.drawRoundRect(leftArmX, armsY, armWidth, armHeight, 4, 4);
+        g.drawRoundRect(rightArmX, armsY, armWidth, armHeight, 4, 4);
     }
 }

@@ -1,3 +1,4 @@
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 
@@ -6,47 +7,56 @@ public class Tree implements Clickable {
     private int treeY;
     private int size;
     private int health;
+    private int side;
     private boolean removed = false;
 
     Panel panel;
 
-    public Tree(Panel panel, int size, int health) {
+    public Tree(Panel panel, int size, int health, int side) {
         this.panel = panel;
         this.size = size;
         this.health = health;
+        this.side = side;
 
-        int leftOrRight = (int) (Math.random() * 2);
-        treeX = leftOrRight == 0
-                ? (int) (Math.random() * (panel.SCREEN_WIDTH / 2 - size * 2) + size * 2)
-                : (int) (panel.SCREEN_WIDTH / 2 + size + Math.random() * (panel.SCREEN_WIDTH / 2 - size * 3)
-                        - size * 2);
+        treeX = side == 0
+                ? (int) (Math.random() * 5 + 2) * panel.SIZE
+                : (int) (Math.random() * 5 + 9) * panel.SIZE;
         treeY = panel.SCREEN_HEIGHT / 2 - (size) / 2 - size;
     }
 
+    public int getSide() {
+        return side;
+    }
+
     public void paint(Graphics2D g) {
+        Color brown = new Color(115, 69, 17);
+        Color green = new Color(30, 110, 10);
         if (!removed) {
-            g.setColor(new Color(115, 69, 17));
+            g.setColor(brown);
             g.fillRect(treeX, treeY, size, size * 3);
-            g.setColor(new Color(30, 110, 10));
-            g.fillRect(treeX, treeY, size, size);
+            g.setColor(brown.darker());
+            g.setStroke(new BasicStroke(2));
+            g.drawRect(treeX, treeY, size, size * 3);
+            g.setColor(green);
+            g.fillRect(treeX - size, treeY, size * 3, size);
             g.fillRect(treeX, treeY - size, size, size);
-            g.fillRect(treeX - size, treeY, size, size);
-            g.fillRect(treeX + size, treeY, size, size);
+            g.setColor(green.darker());
+            g.drawRect(treeX - size, treeY, size * 3, size);
+            g.drawRect(treeX, treeY - size, size, size);
+            g.setColor(green);
+            g.drawLine(treeX, treeY, treeX + size, treeY);
+            g.setStroke(new BasicStroke(1));
         }
     }
 
     public boolean collidesWithAny(double px, double py, int pSize) {
-        return px + pSize > treeX && px < treeX + size &&
-                py + pSize > treeY && py < treeY + size * 3 && !removed;
+        int padding = 8;
+        return px + pSize - padding > treeX && px + padding < treeX + size &&
+                py + pSize > treeY && py + padding < treeY + size * 3 && !removed;
     }
 
     public boolean isRemoved() {
         return removed;
-    }
-
-    public boolean overlaps(Tree other) {
-        return treeX - size * 2 < other.treeX + other.size * 3 &&
-                treeX + size * 3 > other.treeX - other.size * 2;
     }
 
     public void takeDamage(int amount) {

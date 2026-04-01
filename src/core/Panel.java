@@ -24,6 +24,7 @@ public class Panel extends JPanel implements Runnable {
     PowerUp powerUp;
 
     private int spawnTimer = 0;
+    int mouseX = 0, mouseY = 0;
     private final int SPAWN_INTERVAL = 30;
     ArrayList<Mob> mobs = new ArrayList<>();
 
@@ -46,32 +47,7 @@ public class Panel extends JPanel implements Runnable {
 
         restart();
 
-        // mobs.add(new Zombie(SIZE, 1, Color.RED, this));
-
         addKeyListener(player.keyH);
-    }
-
-    private void addGameMouseListener() {
-        addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                if (player.keyH.pausePressed || mainScreen.active || gameOverScreen.active)
-                    return;
-                if (player.keyH.inventoryPressed) {
-                    inventoryScreen.handleClick(e.getX(), e.getY());
-                    return;
-                }
-
-                int mx = e.getX(), my = e.getY();
-                double reach = SIZE * 5;
-
-                if (tryHitMob(mx, my, reach))
-                    return;
-                if (tryHitTree(mx, my, reach))
-                    return;
-                trySelectSlot(mx, my);
-            }
-        });
     }
 
     private boolean tryHitMob(int mx, int my, double reach) {
@@ -129,6 +105,60 @@ public class Panel extends JPanel implements Runnable {
         return damage * player.damageMultiplier;
     }
 
+    private boolean tryPlaceBlock(int mx, int my, double reach) {
+        Item selected = player.getSelectedItem();
+
+        if (selected == null)
+            return false;
+
+        Item.Type itemType = selected.getType();
+
+        if (itemType != Item.Type.WOOD && itemType != Item.Type.PLANK)
+            return false;
+
+        int groundY = SCREEN_HEIGHT / 2 + (3 * SIZE / 2);
+
+        if (my >= groundY)
+            return false;
+
+        double dx = mx - player.getX();
+        double dy = my - player.getY();
+
+        if (Math.sqrt(dx * dx + dy * dy) > reach)
+            return false;
+
+        int gridX = (mx / SIZE) * SIZE;
+        int gridY = (my / SIZE) * SIZE;
+
+        World world = worlds[worldIndex + 1];
+
+        if (!world.canPlace(gridX, gridY))
+            return false;
+
+        Block.Type blockType = (itemType == Item.Type.WOOD)
+                ? Block.Type.WOOD
+                : Block.Type.PLANK;
+
+        world.placeBlock(blockType, gridX, gridY, this);
+        pushPlayerOutOfBlock(world.blocks.get(world.blocks.size() - 1));
+        player.addItem(itemType, -1);
+
+        return true;
+    }
+
+    private boolean tryBreakBlock(int mx, int my, double reach) {
+        World world = worlds[worldIndex + 1];
+        for (Block b : new ArrayList<>(world.blocks)) {
+            if (b.containsPoint(mx, my)) {
+                if (distanceTo(b) > reach)
+                    return false;
+                b.onClick();
+                return true;
+            }
+        }
+        return false;
+    }
+
     private double distanceTo(Clickable target) {
         double dx = target.getX() - player.getX();
         double dy = target.getY() - player.getY();
@@ -156,6 +186,9 @@ public class Panel extends JPanel implements Runnable {
 
         for (MouseListener ml : getMouseListeners()) {
             removeMouseListener(ml);
+        }
+        for (java.awt.event.MouseMotionListener ml : getMouseMotionListeners()) {
+            removeMouseMotionListener(ml);
         }
 
         worlds[0] = new World(this, SIZE);
@@ -262,9 +295,81 @@ public class Panel extends JPanel implements Runnable {
         }
     }
 
+    private void pushPlayerOutOfBlock(Block block) {
+        double px = player.characterX + 14;
+        double py = player.characterY;
+        int pw = 36;
+        int ph = player.size * 2;
+        int bx = (int) block.getX();
+        int by = (int) block.getY();
+        int bs = block.getSize();
+
+        if (!(px + pw > bx && px < bx + bs && py + ph > by && py < by + bs))
+            return;
+
+        double overlapLeft = (px + pw) - bx;
+        double overlapRight = (bx + bs) - px;
+        double overlapUp = (py + ph) - by;
+        double overlapDown = (by + bs) - py;
+
+        double minOverlap = Math.min(Math.min(overlapLeft, overlapRight), Math.min(overlapUp, overlapDown));
+
+        int groundY = SCREEN_HEIGHT / 2 + (3 * SIZE / 2);
+        if (by + bs == groundY) {
+            if (minOverlap == overlapLeft)
+                player.characterX -= overlapLeft + 6;
+            else
+                player.characterX += overlapRight + 6;
+        } else {
+            player.characterY -= overlapUp + 6;
+        }
+    }
+
     private void spawnPowerUp() {
         int randomWorld = (int) (Math.random() * 3);
         powerUp = new PowerUp(this, (int) (Math.random() * 2), SIZE, randomWorld);
+    }
+
+    private void addGameMouseListener() {
+        addMouseMotionListener(new MouseAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                mouseX = e.getX();
+                mouseY = e.getY();
+            }
+
+            @Override
+            public void mouseDragged(MouseEvent e) {
+                mouseX = e.getX();
+                mouseY = e.getY();
+            }
+        });
+        addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) {
+                if (player.keyH.pausePressed || mainScreen.active || gameOverScreen.active)
+                    return;
+                if (player.keyH.inventoryPressed) {
+                    inventoryScreen.handleClick(e.getX(), e.getY());
+                    return;
+                }
+
+                int mx = e.getX(), my = e.getY();
+                double reach = SIZE * 5;
+
+                if (e.getButton() == MouseEvent.BUTTON3) {
+                    tryPlaceBlock(mx, my, reach);
+                    return;
+                }
+                if (tryBreakBlock(mx, my, reach))
+                    return;
+                if (tryHitMob(mx, my, reach))
+                    return;
+                if (tryHitTree(mx, my, reach))
+                    return;
+                trySelectSlot(mx, my);
+            }
+        });
     }
 
     @Override

@@ -8,8 +8,8 @@ public class Zombie extends Mob {
     private boolean walkFrame = false;
     private int walkTimer = 0;
 
-    public Zombie(int size, int health, Color colour, Panel panel) {
-        super(size, health, colour, panel);
+    public Zombie(int size, int health, Color color, Panel panel) {
+        super(size, health, color, panel);
         characterX = Math.random() < 0.5 ? -size : panel.SCREEN_WIDTH + size;
         characterY = panel.SCREEN_HEIGHT / 2 - size / 2;
     }
@@ -28,7 +28,18 @@ public class Zombie extends Mob {
             return;
 
         double dx = playerX - characterX;
-        characterX += Math.signum(dx) * SPEED;
+        double nextX = characterX + Math.signum(dx) * SPEED;
+
+        boolean blocked = false;
+        for (Block block : panel.worlds[worldIndex + 1].blocks) {
+            if (block.collidesWithAny(nextX, characterY, size, size * 2)) {
+                blocked = true;
+                break;
+            }
+        }
+        if (!blocked) {
+            characterX = nextX;
+        }
 
         if (damageCooldown > 0)
             damageCooldown--;
@@ -68,17 +79,6 @@ public class Zombie extends Mob {
                 new Color(80, 140, 80),
                 new Color(60, 100, 60));
 
-        paintHealth(g, this);
-        g.setColor(Color.YELLOW);
-
-        // int padding = 16;
-        // int hitboxHeight = size * 2 - padding * 2;
-        // int hitboxTop = (int) characterY + size * 2 - hitboxHeight;
-        // g.setColor(Color.YELLOW);
-        // g.drawRect(
-        // (int) characterX + padding,
-        // hitboxTop,
-        // size - padding * 2,
-        // hitboxHeight);
+        paintHealth(g);
     }
 }

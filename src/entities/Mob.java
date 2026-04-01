@@ -5,8 +5,8 @@ public abstract class Mob extends Character implements Clickable {
     Panel panel;
     int worldIndex;
 
-    public Mob(int size, int health, Color colour, Panel panel) {
-        super(size, health, colour);
+    public Mob(int size, int health, Color color, Panel panel) {
+        super(size, health, color);
         this.panel = panel;
         this.worldIndex = panel.worldIndex;
     }
@@ -15,7 +15,7 @@ public abstract class Mob extends Character implements Clickable {
         characterX = x;
     }
 
-    public void paintHealth(Graphics2D g, Object obj) {
+    public void paintHealth(Graphics2D g) {
         if (isRemoved())
             return;
         int barWidth = size;

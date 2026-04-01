@@ -25,8 +25,8 @@ public class Player extends Character {
     LinkedList<Inventory> inventory = new LinkedList<>();
     Panel panel;
 
-    public Player(int size, int health, Color colour, Panel panel) {
-        super(size, health, colour);
+    public Player(int size, int health, Color color, Panel panel) {
+        super(size, health, color);
         keyH = new KeyHandler(panel);
         this.panel = panel;
 
@@ -113,6 +113,8 @@ public class Player extends Character {
                 return woodQty >= 6;
             case AXE:
                 return woodQty >= 4;
+            case PLANK:
+                return woodQty >= 1;
             default:
                 return false;
         }
@@ -129,6 +131,10 @@ public class Player extends Character {
             case AXE:
                 addItem(Item.Type.WOOD, -4);
                 addItem(Item.Type.AXE, 1);
+                return true;
+            case PLANK:
+                addItem(Item.Type.WOOD, -1);
+                addItem(Item.Type.PLANK, 4);
                 return true;
             default:
                 return false;
@@ -176,6 +182,9 @@ public class Player extends Character {
                     break;
                 case SWORD:
                     gap = left ? -2 : right ? 16 : -4;
+                    break;
+                case PLANK:
+                    gap = left ? -18 : right ? 24 : -18;
                     break;
             }
 
@@ -344,6 +353,14 @@ public class Player extends Character {
                 break;
             }
         }
+
+        for (Block block : panel.worlds[panel.worldIndex + 1].blocks) {
+            if (block.collidesWithAny(nextX, characterY, size, size * 2)) {
+                blockedX = true;
+                break;
+            }
+        }
+
         if (!blockedX)
             characterX = nextX;
         else
@@ -387,6 +404,12 @@ public class Player extends Character {
         boolean blockedY = false;
         for (Tree tree : panel.worlds[panel.worldIndex + 1].trees) {
             if (tree.collidesWithAny(characterX, nextY + size, size)) {
+                blockedY = true;
+                break;
+            }
+        }
+        for (Block block : panel.worlds[panel.worldIndex + 1].blocks) {
+            if (block.collidesWithAny(characterX, nextY, size, size * 2)) {
                 blockedY = true;
                 break;
             }

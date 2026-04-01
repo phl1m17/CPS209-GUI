@@ -15,9 +15,11 @@ public class InventoryScreen {
     private int craftX;
     private int craftSwordY;
     private int craftAxeY;
+    private int craftPlanksY;
 
     private final Item swordPreview = new Item(Item.Type.SWORD, 1);
     private final Item axePreview = new Item(Item.Type.AXE, 1);
+    private final Item plankPreview = new Item(Item.Type.PLANK, 1);
 
     public InventoryScreen(Panel panel) {
         this.panel = panel;
@@ -30,6 +32,7 @@ public class InventoryScreen {
         craftX = screenX + screenW - size - padding * 3;
         craftSwordY = screenY + padding * 3 + 20;
         craftAxeY = craftSwordY + size + padding;
+        craftPlanksY = craftAxeY + size + padding;
     }
 
     public void paint(Graphics2D g) {
@@ -69,6 +72,7 @@ public class InventoryScreen {
 
         drawCraftSlot(g, craftX, craftSwordY, Item.Type.SWORD, "6 wood");
         drawCraftSlot(g, craftX, craftAxeY, Item.Type.AXE, "4 wood");
+        drawCraftSlot(g, craftX, craftPlanksY, Item.Type.PLANK, "1 wood");
 
         g.setColor(Color.WHITE);
         g.drawString("Days Survived: " + panel.dayCount, screenX + padding,
@@ -84,7 +88,7 @@ public class InventoryScreen {
         g.setStroke(new BasicStroke(1));
         g.drawRect(x, y, size, size);
 
-        Item preview = result == Item.Type.SWORD ? swordPreview : axePreview;
+        Item preview = result == Item.Type.SWORD ? swordPreview : result == Item.Type.AXE ? axePreview : plankPreview;
         preview.paint(g, x, y, size, true, false, true);
 
         g.setColor(canCraft ? Color.WHITE : Color.GRAY);
@@ -101,6 +105,9 @@ public class InventoryScreen {
             }
             if (mouseY >= craftAxeY && mouseY <= craftAxeY + size) {
                 panel.player.craft(Item.Type.AXE);
+            }
+            if (mouseY >= craftPlanksY && mouseY <= craftPlanksY + size) {
+                panel.player.craft(Item.Type.PLANK);
             }
         }
     }
